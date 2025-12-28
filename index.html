@@ -3,99 +3,23 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Duck Racing — Responsive</title>
+<title>Duck Racing — Fixed & Slower</title>
 
 <style>
-body{
-  margin:0;
-  background:#0f172a;
-  color:#fff;
-  font-family: Inter, system-ui;
-  display:flex;
-  justify-content:center;
-}
-.container{
-  width:100%;
-  max-width:960px;
-  padding:16px;
-}
-.card{
-  background:#111827;
-  border-radius:16px;
-  padding:16px;
-  box-shadow:0 10px 28px rgba(0,0,0,.45);
-  margin-bottom:14px;
-}
-h2{text-align:center;margin-top:6px}
-
-textarea{
-  width:100%;
-  min-height:90px;
-  border-radius:12px;
-  border:1px solid #334155;
-  background:#020617;
-  color:#fff;
-  padding:12px;
-  font-size:15px;
-}
-button{
-  width:100%;
-  padding:12px;
-  border-radius:12px;
-  border:none;
-  margin-top:8px;
-  font-weight:700;
-  background:#22c55e;
-  color:#000;
-  font-size:16px;
-}
-
-.track{
-  position:relative;
-  margin-top:12px;
-  background:#020617;
-  border-radius:12px;
-  border:1px solid #1e293b;
-  padding:10px;
-  overflow:hidden;
-}
-.finish{
-  position:absolute;
-  right:6px; top:6px; bottom:6px;
-  width:3px;
-  background:#ef4444;
-}
-.duck{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:20px;
-  margin:8px 0;
-  transform:translateX(0);
-  transition:transform .16s linear;
-}
+body{margin:0;background:#0f172a;color:#fff;font-family:Inter,system-ui;display:flex;justify-content:center}
+.container{max-width:960px;width:100%;padding:16px}
+.card{background:#111827;border-radius:16px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,.45);margin-bottom:14px}
+textarea{width:100%;min-height:90px;border-radius:12px;border:1px solid #334155;background:#020617;color:#fff;padding:12px}
+button{width:100%;padding:12px;border-radius:12px;border:none;margin-top:8px;font-weight:700;background:#22c55e;color:#000}
+.track{position:relative;margin-top:12px;background:#020617;border-radius:12px;border:1px solid #1e293b;padding:10px;overflow:hidden}
+.finish{position:absolute;right:6px;top:6px;bottom:6px;width:3px;background:#ef4444}
+.duck{display:flex;align-items:center;gap:8px;font-size:20px;margin:8px 0;transform:translateX(0);transition:transform .18s linear}
 .duck .name{font-size:14px;opacity:.85}
-
-#board li{
-  list-style:none;
-  margin:6px 0;
-  padding:8px;
-  border-radius:10px;
-  background:#020617;
-}
+#board li{list-style:none;margin:6px 0;padding:8px;border-radius:10px;background:#020617}
 .top1{background:#fde047;color:#000}
 .top2{background:#e5e7eb;color:#000}
 .top3{background:#fb923c;color:#000}
-
 .timer{font-size:13px;opacity:.8;margin-top:6px}
-
-/* 📱 Mobile optimized */
-@media(max-width:640px){
-  .duck{font-size:18px}
-  button{font-size:15px}
-  textarea{font-size:14px}
-  .track{padding:8px}
-}
 </style>
 </head>
 
@@ -103,11 +27,12 @@ button{
 <div class="container">
 
 <div class="card">
-  <h2>🐤 Duck Racing — Responsive</h2>
+  <h2 style="text-align:center">🦆 Duck Racing</h2>
 
   <p>Mỗi dòng 1 tên vịt:</p>
   <textarea id="names"></textarea>
   <button id="startBtn">Bắt đầu đua</button>
+
   <div class="timer" id="timer"></div>
 
   <div class="track" id="track">
@@ -121,16 +46,16 @@ button{
 </div>
 
 <script>
-const btn = document.getElementById("startBtn");
-const track = document.getElementById("track");
-const board = document.getElementById("board");
-const timerEl = document.getElementById("timer");
+const btn=document.getElementById("startBtn");
+const track=document.getElementById("track");
+const board=document.getElementById("board");
+const timerEl=document.getElementById("timer");
 
-let ducks=[], finished=[], running=false, startTime=0, timerLoop=null;
+let ducks=[], results=[], running=false, startTime=0, timerLoop=null;
 
 function reset(){
   running=false;
-  finished=[];
+  results=[];
   board.innerHTML="";
   timerEl.textContent="";
   clearInterval(timerLoop);
@@ -140,20 +65,21 @@ function startRace(){
   reset();
 
   const names=document.getElementById("names").value
-   .split("\n").map(s=>s.trim()).filter(Boolean);
+    .split("\n").map(s=>s.trim()).filter(Boolean);
 
-  if(!names.length){alert("Nhập tên vịt trước!");return;}
+  if(!names.length){alert("Nhập tên trước!");return;}
 
   track.querySelectorAll(".duck").forEach(e=>e.remove());
 
-  ducks=names.map(n=>{
-    const d=document.createElement("div");
-    d.className="duck";
-    d.dataset.progress=0;
-    d.dataset.name=n;
-    d.innerHTML=`<span>🦆</span><span class="name">${n}</span>`;
-    track.appendChild(d);
-    return d;
+  ducks=names.map(name=>{
+    const el=document.createElement("div");
+    el.className="duck";
+    el.dataset.progress=0;
+    el.dataset.name=name;
+    el.dataset.finished="0";
+    el.innerHTML=`<span>🦆</span><span class="name">${name}</span>`;
+    track.appendChild(el);
+    return el;
   });
 
   running=true;
@@ -162,46 +88,60 @@ function startRace(){
   timerLoop=setInterval(()=>{
     const t=((performance.now()-startTime)/1000).toFixed(2);
     timerEl.textContent="⏱ "+t+"s";
-  },100);
+  },120);
 
-  requestAnimationFrame(step);
+  requestAnimationFrame(loop);
 }
 
-function step(){
+function loop(){
   if(!running) return;
 
   ducks.forEach(d=>{
-    if(finished.includes(d)) return;
+    if(d.dataset.finished==="1") return;
 
     let p=+d.dataset.progress;
-    p+=Math.random()*3;      // tốc độ ổn định cho mobile + pc
+
+    // 🐢 tốc độ chậm & ổn định hơn
+    p+=0.6 + Math.random()*1.0;
 
     if(p>=90){
+      d.dataset.finished="1";
       p=90;
-      finished.push(d);
-      const time=((performance.now()-startTime)/1000).toFixed(2);
-      addRank(d.dataset.name,time);
-      if(finished.length===ducks.length){
+
+      const time=((performance.now()-startTime)/1000);
+      results.push({name:d.dataset.name,time,el:d});
+
+      d.style.transform=`translateX(${p}%)`;
+      updateRanking();
+
+      if(results.length===ducks.length){
         running=false;
         clearInterval(timerLoop);
       }
+      return;
     }
 
     d.dataset.progress=p;
     d.style.transform=`translateX(${p}%)`;
   });
 
-  requestAnimationFrame(step);
+  requestAnimationFrame(loop);
 }
 
-function addRank(name,time){
-  const li=document.createElement("li");
-  const pos=finished.length;
-  li.textContent = pos+". "+name+" — "+time+"s";
-  if(pos===1) li.classList.add("top1");
-  if(pos===2) li.classList.add("top2");
-  if(pos===3) li.classList.add("top3");
-  board.appendChild(li);
+function updateRanking(){
+  // 🔎 sắp xếp đúng theo thời gian
+  results.sort((a,b)=>a.time-b.time);
+
+  board.innerHTML="";
+
+  results.forEach((r,i)=>{
+    const li=document.createElement("li");
+    li.textContent=`${i+1}. ${r.name} — ${r.time.toFixed(2)}s`;
+    if(i===0) li.classList.add("top1");
+    if(i===1) li.classList.add("top2");
+    if(i===2) li.classList.add("top3");
+    board.appendChild(li);
+  });
 }
 
 btn.onclick=()=>{ if(!running) startRace(); };
