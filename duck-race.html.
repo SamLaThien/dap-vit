@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>Duck Race Game</title>
+
+<style>
+  body { font-family: Arial; background:#eef5ff; }
+  h2 { text-align:center }
+  #panel { text-align:center; margin:10px 0 }
+  #track {
+    width: 900px; margin: 20px auto; padding:10px;
+    border:3px solid #333; background:#fff; position:relative;
+  }
+  .lane {
+    height:70px; border-bottom:1px dashed #bbb;
+    position:relative;
+  }
+  .duck {
+    position:absolute; left:0; top:15px;
+    font-size:38px;
+    transition: left .08s linear;
+  }
+  .finish {
+    position:absolute; right:0; top:0;
+    width:6px; height:100%; background:red;
+  }
+  button { padding:8px 14px; margin:0 6px }
+</style>
+</head>
+
+<body>
+
+<h2>🦆 Game Đua Vịt</h2>
+
+<div id="panel">
+  Số lượng vịt:
+  <select id="count">
+    <option>3</option><option>4</option><option>5</option><option>6</option>
+  </select>
+  <button onclick="setupTrack()">Tạo đường đua</button>
+  <button onclick="startRace()">Bắt đầu</button>
+  <button onclick="resetRace()">Chơi lại</button>
+</div>
+
+<div id="track"></div>
+
+<script>
+const DUCK_ICONS = ["🦆","🟡","🟢","🟣","🟠","🧡"];
+let lanes = [];
+let finished = false;
+let timer = null;
+
+function setupTrack(){
+  clearInterval(timer);
+  finished = false;
+  lanes = [];
+  const n = parseInt(document.getElementById("count").value);
+  const track = document.getElementById("track");
+  track.innerHTML = "";
+
+  for(let i=0;i<n;i++){
+    const lane = document.createElement("div");
+    lane.className = "lane";
+
+    const duck = document.createElement("div");
+    duck.className = "duck";
+    duck.textContent = DUCK_ICONS[i % DUCK_ICONS.length];
+
+    const finish = document.createElement("div");
+    finish.className = "finish";
+
+    lane.appendChild(duck);
+    lane.appendChild(finish);
+    track.appendChild(lane);
+
+    lanes.push({ el: duck, pos: 0, speed: 2 + Math.random()*3 });
+  }
+}
+
+function startRace(){
+  if(finished || lanes.length === 0) return;
+
+  const track = document.getElementById("track");
+  const limit = track.clientWidth - 80;
+
+  timer = setInterval(()=>{
+    lanes.forEach((lane, i)=>{
+      // tăng tốc ngẫu nhiên nhẹ trong quá trình đua
+      lane.pos += lane.speed + Math.random()*4;
+      lane.el.style.left = lane.pos + "px";
+
+      if(lane.pos >= limit && !finished){
+        finished = true;
+        clearInterval(timer);
+        alert("🏆 Vịt số " + (i+1) + " đã chiến thắng!");
+      }
+    });
+  }, 80);
+}
+
+function resetRace(){
+  lanes.forEach(l => { l.pos = 0; l.el.style.left = "0px"; });
+  finished = false;
+}
+
+setupTrack(); // khởi tạo mặc định khi mở trang
+</script>
+
+</body>
+</html>
