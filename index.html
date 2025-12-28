@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Duck Racing — Fixed & Slower</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duck Racing — Stable Slow</title>
 
 <style>
 body{margin:0;background:#0f172a;color:#fff;font-family:Inter,system-ui;display:flex;justify-content:center}
@@ -13,8 +13,7 @@ textarea{width:100%;min-height:90px;border-radius:12px;border:1px solid #334155;
 button{width:100%;padding:12px;border-radius:12px;border:none;margin-top:8px;font-weight:700;background:#22c55e;color:#000}
 .track{position:relative;margin-top:12px;background:#020617;border-radius:12px;border:1px solid #1e293b;padding:10px;overflow:hidden}
 .finish{position:absolute;right:6px;top:6px;bottom:6px;width:3px;background:#ef4444}
-.duck{display:flex;align-items:center;gap:8px;font-size:20px;margin:8px 0;transform:translateX(0);transition:transform .18s linear}
-.duck .name{font-size:14px;opacity:.85}
+.duck{display:flex;align-items:center;gap:8px;font-size:20px;margin:8px 0;position:relative;left:0}
 #board li{list-style:none;margin:6px 0;padding:8px;border-radius:10px;background:#020617}
 .top1{background:#fde047;color:#000}
 .top2{background:#e5e7eb;color:#000}
@@ -25,24 +24,24 @@ button{width:100%;padding:12px;border-radius:12px;border:none;margin-top:8px;fon
 
 <body>
 <div class="container">
-
 <div class="card">
-  <h2 style="text-align:center">🦆 Duck Racing</h2>
 
-  <p>Mỗi dòng 1 tên vịt:</p>
-  <textarea id="names"></textarea>
-  <button id="startBtn">Bắt đầu đua</button>
+<h2 style="text-align:center">🦆 Duck Racing — Stable</h2>
 
-  <div class="timer" id="timer"></div>
+<p>Mỗi dòng 1 tên:</p>
+<textarea id="names"></textarea>
+<button id="startBtn">Bắt đầu đua</button>
 
-  <div class="track" id="track">
-    <div class="finish"></div>
-  </div>
+<div class="timer" id="timer"></div>
 
-  <h3>🏆 Bảng xếp hạng</h3>
-  <ul id="board"></ul>
+<div class="track" id="track">
+  <div class="finish"></div>
 </div>
 
+<h3>🏆 Bảng xếp hạng</h3>
+<ul id="board"></ul>
+
+</div>
 </div>
 
 <script>
@@ -51,7 +50,7 @@ const track=document.getElementById("track");
 const board=document.getElementById("board");
 const timerEl=document.getElementById("timer");
 
-let ducks=[], results=[], running=false, startTime=0, timerLoop=null;
+let ducks=[], results=[], running=false, startTime=0, timerLoop=null, finishX=0;
 
 function reset(){
   running=false;
@@ -71,15 +70,19 @@ function startRace(){
 
   track.querySelectorAll(".duck").forEach(e=>e.remove());
 
+  // chiều rộng track thực tế
+  const trackWidth=track.clientWidth;
+  finishX=trackWidth-70;  // trừ kích thước icon vịt
+
   ducks=names.map(name=>{
-    const el=document.createElement("div");
-    el.className="duck";
-    el.dataset.progress=0;
-    el.dataset.name=name;
-    el.dataset.finished="0";
-    el.innerHTML=`<span>🦆</span><span class="name">${name}</span>`;
-    track.appendChild(el);
-    return el;
+    const d=document.createElement("div");
+    d.className="duck";
+    d.dataset.x=0;
+    d.dataset.name=name;
+    d.dataset.done="0";
+    d.innerHTML=`<span>🦆</span><span>${name}</span>`;
+    track.appendChild(d);
+    return d;
   });
 
   running=true;
@@ -88,7 +91,7 @@ function startRace(){
   timerLoop=setInterval(()=>{
     const t=((performance.now()-startTime)/1000).toFixed(2);
     timerEl.textContent="⏱ "+t+"s";
-  },120);
+  },200);
 
   requestAnimationFrame(loop);
 }
@@ -97,21 +100,21 @@ function loop(){
   if(!running) return;
 
   ducks.forEach(d=>{
-    if(d.dataset.finished==="1") return;
+    if(d.dataset.done==="1") return;
 
-    let p=+d.dataset.progress;
+    let x=+d.dataset.x;
 
-    // 🐢 tốc độ chậm & ổn định hơn
-    p+=0.6 + Math.random()*1.0;
+    // 🐌 tốc độ chậm rõ ràng
+    x+=1.2 + Math.random()*1.0;
 
-    if(p>=90){
-      d.dataset.finished="1";
-      p=90;
+    if(x>=finishX){
+      x=finishX;
+      d.dataset.done="1";
 
-      const time=((performance.now()-startTime)/1000);
-      results.push({name:d.dataset.name,time,el:d});
+      const t=(performance.now()-startTime)/1000;
+      results.push({name:d.dataset.name,time:t});
 
-      d.style.transform=`translateX(${p}%)`;
+      d.style.left=x+"px";
       updateRanking();
 
       if(results.length===ducks.length){
@@ -121,17 +124,15 @@ function loop(){
       return;
     }
 
-    d.dataset.progress=p;
-    d.style.transform=`translateX(${p}%)`;
+    d.dataset.x=x;
+    d.style.left=x+"px";
   });
 
   requestAnimationFrame(loop);
 }
 
 function updateRanking(){
-  // 🔎 sắp xếp đúng theo thời gian
   results.sort((a,b)=>a.time-b.time);
-
   board.innerHTML="";
 
   results.forEach((r,i)=>{
