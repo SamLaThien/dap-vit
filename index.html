@@ -3,15 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Đua Thú Siêu Cấp</title>
+<title>Duck Racing — Short Boost</title>
+
 <style>
 body{margin:0;background:#0f172a;color:#fff;font-family:system-ui;display:flex;justify-content:center;min-height:100vh}
 .container{max-width:1000px;width:100%;padding:10px;display:flex;flex-direction:column;box-sizing:border-box}
 .card{background:#111827;border-radius:16px;padding:15px;box-shadow:0 10px 25px rgba(0,0,0,.5);border:1px solid #1f2937}
 
-h2{text-align:center;color:#38bdf8;margin:5px 0; text-transform: uppercase;}
-.timer{font-size:24px;text-align:center;color:#fbbf24;font-weight:bold;margin-bottom:10px;font-family:monospace}
-.commentary-box{background:#1e1b4b;color:#e0e7ff;padding:10px;border-radius:8px;font-size:14px;border:1px solid #4338ca;min-height:22px;margin-bottom:15px;text-align:center}
+h2{text-align:center;color:#38bdf8;margin:5px 0}
+textarea{width:100%;height:60px;border-radius:8px;border:1px solid #334155;background:#020617;color:#fff;padding:10px;box-sizing:border-box;font-size: 14px;}
+
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+button{padding:12px;border-radius:8px;border:none;font-weight:700;cursor:pointer;transition: 0.2s;}
+#startBtn{background:#22c55e;color:#000}
+#resetBtn{background:#38bdf8;color:#000}
+
+.timer{font-size:22px;text-align:center;color:#fbbf24;font-weight:bold;margin-bottom:10px;}
+.commentary-box{background:#1e1b4b;color:#e0e7ff;padding:10px;border-radius:8px;font-size:14px;border:1px solid #4338ca;min-height:22px;margin-bottom:15px; text-align: center;}
 
 /* ĐƯỜNG ĐUA */
 .track-wrapper {
@@ -26,55 +34,50 @@ h2{text-align:center;color:#38bdf8;margin:5px 0; text-transform: uppercase;}
 .track {
   position:relative;
   width: 4000px;
-  background-image: linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-image: linear-gradient(90deg, rgba(56,189,248,0.1) 1px, transparent 1px);
   background-size: 200px 100%;
   padding: 10px 0;
+  transition: height 0.3s ease;
 }
 .finish-line {
   position:absolute;
-  right:120px;
+  right:100px;
   top:0; bottom:0;
   width:20px;
   background: repeating-linear-gradient(45deg, #ef4444, #ef4444 8px, #fff 8px, #fff 16px);
   border-left: 4px solid white;
 }
 
-/* VẬN ĐỘNG VIÊN */
-.racer {
+/* CON VỊT */
+.duck {
   position: absolute;
   left: 0;
   display: flex;
   align-items: center;
   gap: 12px;
   font-weight: 600;
-  height: 50px;
+  height: 40px;
   padding: 0 10px;
   z-index: 2;
-  white-space: nowrap;
 }
-.racer img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
+.duck-icon {
+  font-size: 26px;
   transition: transform 0.2s;
 }
 
-/* HIỆU ỨNG */
-.racer.boosted img {
-  filter: drop-shadow(0 0 10px #fbbf24) brightness(1.2);
-  transform: scale(1.3) skewX(-10deg);
+/* HIỆU ỨNG NHÌN RÕ KHI BỨT TỐC NHẸ */
+.duck.boosted .duck-icon {
+  filter: drop-shadow(0 0 10px #fbbf24);
+  transform: scale(1.2) skewX(-10deg);
 }
-.racer.stunned { opacity: 0.5; filter: grayscale(1); }
+.duck.stunned { opacity: 0.4; filter: grayscale(1); }
 
-.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
-button{padding:12px;border-radius:8px;border:none;font-weight:700;cursor:pointer}
-#startBtn{background:#22c55e;color:#000}
-#resetBtn{background:#38bdf8;color:#000}
-
+/* BẢNG XẾP HẠNG */
 #board { padding:0; list-style:none; }
 #board li {
   background:#1e293b; padding:10px 15px; margin-bottom:5px;
   border-radius:8px; display:flex; justify-content:space-between;
+  border: 1px solid #334155;
 }
 .top1 { background: #fde047 !important; color: #000; font-weight: bold; }
 </style>
@@ -83,14 +86,16 @@ button{padding:12px;border-radius:8px;border:none;font-weight:700;cursor:pointer
 <body>
 <div class="container">
   <div class="card">
-    <h2>🏆 Đua Thú Siêu Cấp</h2>
+    <h2>🐤 Duck Racing — Short Boost</h2>
+    <textarea id="names" placeholder="Vịt 1&#10;Vịt 2...">Vịt Vàng&#10;Vịt Xanh&#10;Vịt Đỏ&#10;Vịt Tím&#10;Vịt Cam</textarea>
+    
     <div class="buttons">
-      <button id="startBtn">🚀 BẮT ĐẦU</button>
+      <button id="startBtn">🏁 BẮT ĐẦU</button>
       <button id="resetBtn">🔄 LÀM MỚI</button>
     </div>
 
-    <div class="timer" id="timer">00.00s</div>
-    <div class="commentary-box" id="commentary">📢 Chuẩn bị xuất phát!</div>
+    <div class="timer" id="timer">⏱ 0.00s</div>
+    <div class="commentary-box" id="commentary">📢 Sẵn sàng!</div>
 
     <div class="track-wrapper" id="scrollContainer">
       <div class="track" id="track">
@@ -98,7 +103,7 @@ button{padding:12px;border-radius:8px;border:none;font-weight:700;cursor:pointer
       </div>
     </div>
 
-    <h3>📊 Xếp Hạng</h3>
+    <h3>🏆 Kết quả</h3>
     <ul id="board"></ul>
   </div>
 </div>
@@ -110,18 +115,7 @@ const commentaryEl = document.getElementById('commentary');
 const board = document.getElementById('board');
 const timerEl = document.getElementById('timer');
 
-// Dữ liệu ảnh thực tế (Sử dụng icon động vật từ nguồn mở)
-const animalData = [
-    { name: "Cáo", img: "https://cdn-icons-png.flaticon.com/512/235/235368.png" },
-    { name: "Gấu", img: "https://cdn-icons-png.flaticon.com/512/235/235345.png" },
-    { name: "Hổ", img: "https://cdn-icons-png.flaticon.com/512/1998/1998815.png" },
-    { name: "Gà", img: "https://cdn-icons-png.flaticon.com/512/2632/2632839.png" },
-    { name: "Chim", img: "https://cdn-icons-png.flaticon.com/512/2000/2000286.png" },
-    { name: "Nai", img: "https://cdn-icons-png.flaticon.com/512/2219/2219758.png" },
-    { name: "Hươu", img: "https://cdn-icons-png.flaticon.com/512/2219/2219754.png" }
-];
-
-let racers = [], results = [], running = false, startTime = 0;
+let ducks = [], results = [], running = false, startTime = 0;
 let msgQueue = [], isAnnouncing = false;
 
 function log(msg) {
@@ -136,27 +130,35 @@ function showNextMsg() {
     setTimeout(() => showNextMsg(), 1500);
 }
 
+function reset() {
+    running = false; results = []; board.innerHTML = ""; timerEl.textContent = "⏱ 0.00s";
+    msgQueue = []; isAnnouncing = false; commentaryEl.textContent = "📢 Sẵn sàng!";
+    scrollContainer.scrollLeft = 0;
+    track.querySelectorAll('.duck').forEach(d => d.remove());
+}
+
 function startRace() {
     if(running) return;
-    running = false; results = []; board.innerHTML = "";
-    track.querySelectorAll('.racer').forEach(r => r.remove());
-    scrollContainer.scrollLeft = 0;
+    const names = document.getElementById('names').value.split('\n').map(s => s.trim()).filter(Boolean);
+    if(names.length === 0) return;
+    reset();
 
-    track.style.height = (animalData.length * 60 + 20) + "px";
+    const duckHeight = 45;
+    track.style.height = (names.length * duckHeight + 20) + "px";
 
-    racers = animalData.map((animal, i) => {
-        const r = document.createElement('div');
-        r.className = 'racer';
-        r.innerHTML = `<img src="${animal.img}"> <span>${animal.name}</span>`;
-        r.style.top = (i * 60 + 10) + "px";
-        r.dataset.x = 0;
-        r.dataset.name = animal.name;
-        r.dataset.status = "run";
-        r.dataset.statusTimer = 0;
-        r.dataset.cooldown = 0;
-        r.dataset.done = "0";
-        track.appendChild(r);
-        return r;
+    ducks = names.map((name, i) => {
+        const d = document.createElement('div');
+        d.className = 'duck';
+        d.innerHTML = `<span class="duck-icon">🦆</span> <span>${name}</span>`;
+        d.style.top = (i * duckHeight + 10) + "px";
+        d.dataset.x = 0;
+        d.dataset.name = name;
+        d.dataset.status = "run";
+        d.dataset.statusTimer = 0;
+        d.dataset.cooldown = 0;
+        d.dataset.done = "0";
+        track.appendChild(d);
+        return d;
     });
 
     running = true;
@@ -166,66 +168,71 @@ function startRace() {
 
 function update() {
     if(!running) return;
-    const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-    timerEl.textContent = elapsed + "s";
+    const now = performance.now();
+    const elapsed = ((now - startTime) / 1000).toFixed(2);
+    timerEl.textContent = "⏱ " + elapsed + "s";
 
     let leadingX = 0;
     let finishedCount = 0;
-    const finishX = track.offsetWidth - 150;
+    const finishX = track.offsetWidth - 130;
 
-    racers.forEach(r => {
-        if(r.dataset.done === "1") { finishedCount++; return; }
+    ducks.forEach(d => {
+        if(d.dataset.done === "1") { finishedCount++; return; }
 
-        let x = parseFloat(r.dataset.x);
-        let sTimer = parseInt(r.dataset.statusTimer);
-        let cooldown = parseInt(r.dataset.cooldown);
+        let x = parseFloat(d.dataset.x);
+        let sTimer = parseInt(d.dataset.statusTimer);
+        let cooldown = parseInt(d.dataset.cooldown);
 
-        if(sTimer > 0) r.dataset.statusTimer = sTimer - 1;
-        if(cooldown > 0) r.dataset.cooldown = cooldown - 1;
+        if(sTimer > 0) d.dataset.statusTimer = sTimer - 1;
+        if(cooldown > 0) d.dataset.cooldown = cooldown - 1;
 
-        if(sTimer === 0 && r.dataset.status !== "run") {
-            r.dataset.status = "run";
-            r.classList.remove('boosted', 'stunned');
+        if(sTimer === 0 && d.dataset.status !== "run") {
+            d.dataset.status = "run";
+            d.classList.remove('boosted', 'stunned');
         }
 
-        let speed = 2.0 + Math.random() * 1.5;
-        if(r.dataset.status === "boost") speed += 2.5;
-        if(r.dataset.status === "stun") speed = 0;
+        // --- ĐIỀU CHỈNH TỐC ĐỘ ---
+        let speed = 1.8 + Math.random() * 1.2; 
+        if(d.dataset.status === "boost") speed += 2.5; // Giảm từ 6 xuống 2.5 để bứt tốc ngắn
+        if(d.dataset.status === "stun") speed = 0;
 
-        if(r.dataset.status === "run" && cooldown === 0 && Math.random() < 0.008) {
+        // --- LOGIC BỨT TỐC NGẮN ---
+        if(d.dataset.status === "run" && parseInt(d.dataset.cooldown) === 0 && Math.random() < 0.008) {
             if(Math.random() > 0.4) {
-                r.dataset.status = "boost";
-                r.dataset.statusTimer = 40;
-                r.dataset.cooldown = 300;
-                r.classList.add('boosted');
-                log(r.dataset.name + " đang bứt tốc!");
+                d.dataset.status = "boost";
+                d.dataset.statusTimer = 40; // Rút ngắn thời gian boost còn ~0.7 giây
+                d.dataset.cooldown = 300;   // Hồi chiêu 5 giây
+                d.classList.add('boosted');
+                log(d.dataset.name + " nhích nhẹ lên!");
             } else {
-                r.dataset.status = "stun";
-                r.dataset.statusTimer = 40;
-                r.dataset.cooldown = 150;
-                r.classList.add('stunned');
-                log(r.dataset.name + " bị trượt chân!");
+                d.dataset.status = "stun";
+                d.dataset.statusTimer = 40; 
+                d.dataset.cooldown = 150;
+                d.classList.add('stunned');
+                log(d.dataset.name + " bị khựng lại!");
             }
         }
 
         x += speed;
-        r.dataset.x = x;
-        r.style.left = x + "px";
+        d.dataset.x = x;
+        d.style.left = x + "px";
         if(x > leadingX) leadingX = x;
 
         if(x >= finishX) {
-            r.dataset.done = "1";
-            results.push({name: r.dataset.name, time: elapsed});
-            log(r.dataset.name + " đã về đích!");
+            d.dataset.done = "1";
+            d.style.left = finishX + "px";
+            results.push({name: d.dataset.name, time: elapsed});
+            log(d.dataset.name + " VỀ ĐÍCH!");
             updateBoard();
         }
     });
 
-    if(leadingX > scrollContainer.offsetWidth / 2) {
-        scrollContainer.scrollLeft = leadingX - scrollContainer.offsetWidth / 2;
+    const screenW = scrollContainer.offsetWidth;
+    if(leadingX > screenW / 3) {
+        scrollContainer.scrollLeft = leadingX - screenW / 3;
     }
 
-    if(finishedCount < racers.length) requestAnimationFrame(update);
+    if(finishedCount < ducks.length) requestAnimationFrame(update);
     else running = false;
 }
 
@@ -236,7 +243,7 @@ function updateBoard() {
 }
 
 document.getElementById('startBtn').onclick = startRace;
-document.getElementById('resetBtn').onclick = () => location.reload();
+document.getElementById('resetBtn').onclick = reset;
 </script>
 </body>
 </html>
